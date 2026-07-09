@@ -69,9 +69,9 @@ push and pull request.
 
 ### GitHub Pages (static demo)
 
-`.github/workflows/deploy.yml` publishes a **static export** to GitHub Pages on
-every push to `main` (or via **Actions → Deploy to GitHub Pages → Run
-workflow**).
+`.github/workflows/static.yml` publishes a **static export** to GitHub Pages on
+every push to the app branch (or via **Actions → Deploy static content to Pages
+→ Run workflow**).
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 Actions.**
