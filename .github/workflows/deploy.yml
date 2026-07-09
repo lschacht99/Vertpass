@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+# Publishes a static export of the app to GitHub Pages.
+# The dynamic /api/ask route is not included in a static export, so the Ask AI
+# tab uses the built-in client-side engine (deterministic, source-cited mock).
+# For live Gemini Flash answers, deploy to a Node host (e.g. Vercel) instead.
+#
+# One-time setup: repo Settings -> Pages -> Build and deployment -> Source:
+# "GitHub Actions".
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static export
+        env:
+          NEXT_STATIC_EXPORT: "true"
+          # Project site is served from /<repo-name>. Change if using a custom domain.
+          NEXT_PUBLIC_BASE_PATH: "/${{ github.event.repository.name }}"
+        run: |
+          npm run build
+          touch out/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

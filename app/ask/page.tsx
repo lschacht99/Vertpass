@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, Badge, SectionTitle } from "@/components/ui";
 import { NOT_LEGAL_ADVICE_NOTICE, ATTORNEY_WARNING } from "@/lib/prompt";
+import { mockAnswer } from "@/lib/askEngine";
 import type { AiMessage, Confidence } from "@/lib/types";
 
 const QUICK = [
@@ -49,12 +50,20 @@ function AskInner() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q }),
-      });
-      const data = await res.json();
+      // In a static export (e.g. GitHub Pages) there is no /api/ask route, so
+      // fall back to the deterministic client-side engine.
+      let data;
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q }),
+        });
+        if (!res.ok) throw new Error("no api");
+        data = await res.json();
+      } catch {
+        data = mockAnswer(q);
+      }
       const aiMsg: AiMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
