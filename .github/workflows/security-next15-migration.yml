@@ -25,6 +25,13 @@ jobs:
         run: npm test
       - name: Verify Next.js application build
         run: npm run build
+      - name: Verify static GitHub Pages export
+        env:
+          NEXT_STATIC_EXPORT: 'true'
+          NEXT_PUBLIC_BASE_PATH: '/Vertpass'
+        run: |
+          npm run build
+          test -f out/index.html
       - name: Security audit, high and critical
         run: npm audit --audit-level=high --omit=dev
       - name: Persist validated dependency lockfile to migration branch
